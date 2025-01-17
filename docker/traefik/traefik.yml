@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  reverse-proxy:
+    image: traefik:3.1
+    restart: unless-stopped
+    environment:
+      - "CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}"
+    networks:
+      - traefik3-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.network=traefik3-public"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_HOST}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.dashboard-http.rule=Host(`${TRAEFIK_HOST}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      # Ensure the IP list for middleware is updated before activating it
+      - "traefik.http.routers.dashboard.middlewares=default-ipallowlist@file,auth@file"
+      - "traefik.http.routers.dashboard.tls.certresolver=certresolver-mvp"
+      - "traefik.http.routers.dashboard.tls=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8082"
+    volumes:
+      - "${LETSENCRYPT_PATH}:/letsencrypt"
+      - "${CONFIG_PATH}:/config"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    command:
+      # Setting log level
+      - "--log.level=INFO"
+      # Enabling internal dashboard
+      - "--api.dashboard=true"
+      # Enabling access logs
+      - "--accesslog=true"
+      - "--accesslog.bufferingsize=0"
+      # Metrics configuration
+      - "--metrics=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=prometheus-metrics"
+      # Providers configuration
+      - "--providers.docker.network=traefik3-public"
+      - "--providers.docker=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.httpClientTimeout=600"
+      - "--providers.docker.exposedbydefault=false"
+      # Entrypoints configuration
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entryPoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - "--entrypoints.prometheus-metrics.address=:8082"
+      # File provider for default settings, etc.
+      - "--providers.file.directory=/config"
+      # Certificate resolvers configuration
+      - "--certificatesresolvers.certresolver-mvp.acme.dnschallenge=true"
+      - "--certificatesresolvers.certresolver-mvp.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.certresolver-mvp.acme.email=${CERTRESOLVER_EMAIL}"
+      - "--certificatesresolvers.certresolver-mvp.acme.storage=/letsencrypt/cert-storage.json"
+
+networks:
+  traefik3-public:
+    external: true
