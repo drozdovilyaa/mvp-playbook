@@ -39,4 +39,4 @@ The MVP-Kit leverages the following tools to build a robust infrastructure:
 
 ## Getting Started
 
-*Coming soon*
+1. [Initial Server Setup and Proxmox Installation](./instructions/docs/server-proxmox-setup.md)
