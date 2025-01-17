@@ -42,3 +42,5 @@ The MVP-Kit leverages the following tools to build a robust infrastructure:
 1. [Initial Server Setup and Proxmox Installation](./instructions/docs/server-proxmox-setup.md)
 
 2. [Setting Up VMs with Portainer and Traefik](./instructions/docs/traefik-portainer-setup.md)
+
+3. [Setting Up VMs with Grafana and Prometheus](./instructions/docs/prometheus-grafana-setup.md)
