@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:3.0.1
+    container_name: prometheus
+    volumes:
+      - "${PROMETHEUS_CONFIG_PATH}:/etc/prometheus/prometheus.yml"
+    networks:
+      - traefik3-public
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: grafana
+    environment:
+      - "GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}"
+      - "GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - traefik3-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik3-public"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.service=grafana"
+      - "traefik.http.routers.grafana.middlewares=default-ipallowlist@file"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=certresolver-mvp"
+
+volumes:
+  grafana-data:
+
+networks:
+  traefik3-public:
+    external: true
