@@ -1,0 +1,58 @@
+http:
+  # Add the middleware
+  middlewares:
+      # middleware whiteiplist
+      default-ipallowlist:
+        ipAllowList:
+          sourcerange:
+            # Replace with your IP
+            - "10.10.10.101/24"
+            # Replace with your IP
+            - "10.10.10.102/24"
+      # middleware for basic auth
+      auth:
+        basicAuth:
+          users:
+            # Replace with username and hashed password
+            - "admin:password"
+
+      # middleware for Rate limiting
+      ratelimit-1:
+        rateLimit:
+          average: 1
+          burst: 3
+      ratelimit-10:
+        rateLimit:
+          average: 10
+          burst: 10
+      ratelimit-100:
+        rateLimit:
+          average: 100
+          burst: 50
+      ratelimit-login-1perminute:
+        rateLimit:
+          average: 1
+          period: 1m
+          burst: 3
+      ratelimit-host-10:
+        rateLimit:
+          average: 10
+          burst: 10
+          sourceCriterion:
+            requestHost: true
+      ratelimit-host-100:
+        rateLimit:
+          average: 100
+          burst: 50
+          sourceCriterion:
+            requestHost: true
+
+tcp:
+  middlewares:
+    default-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          # Replace with your IP
+          - "10.10.10.101/24"
+          # Replace with your IP
+          - "10.10.10.102/24"
